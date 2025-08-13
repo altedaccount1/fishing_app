@@ -1,7 +1,5 @@
 // services/scoring_service.dart
-import 'dart:math';
 import '../utils/constants.dart';
-import '../models/fish.dart';
 
 class ScoringService {
   // Score calculation cache for performance
@@ -146,7 +144,7 @@ class ScoringService {
 
   /// Get species-specific minimum lengths
   static Map<String, double> _getMinimumLengths() {
-    return {
+    return const {
       'Striped Bass': 18.0,
       'Red Drum': 20.0,
       'Black Drum': 16.0,
@@ -162,7 +160,7 @@ class ScoringService {
 
   /// Get species-specific minimum weights
   static Map<String, double> _getMinimumWeights() {
-    return {
+    return const {
       'Striped Bass': 3.0,
       'Red Drum': 4.0,
       'Black Drum': 2.5,
@@ -178,7 +176,7 @@ class ScoringService {
 
   /// Get expected length-to-weight ratios for species
   static Map<String, double> _getSpeciesLengthWeightRatios() {
-    return {
+    return const {
       'Striped Bass': 0.35,
       'Red Drum': 0.30,
       'Black Drum': 0.40,
@@ -222,7 +220,7 @@ class ScoringService {
   /// Validate location-specific restrictions
   static String _validateLocationRestrictions(String species, String location) {
     // Example location restrictions
-    final restrictedAreas = {
+    const restrictedAreas = {
       'Marine Protected Area': ['Striped Bass', 'Red Drum'],
       'Spawning Sanctuary': ['Weakfish', 'Fluke/Summer Flounder'],
     };
@@ -288,7 +286,7 @@ class ScoringService {
   }
 
   static String _getCalculationFormula(String species, double multiplier) {
-    final base =
+    const base =
         '(Length × ${AppConstants.lengthMultiplier}) + (Weight × ${AppConstants.weightMultiplier})';
 
     if (multiplier > 1.0) {
@@ -315,7 +313,7 @@ class ScoringService {
   }
 
   static Map<String, String> _getCommonSizes(String species) {
-    final Map<String, Map<String, String>> sizes = {
+    const Map<String, Map<String, String>> sizes = {
       'Striped Bass': {
         'small': '18-24" (schoolie)',
         'medium': '24-32" (keeper)',
@@ -348,11 +346,11 @@ class ScoringService {
       },
     };
     return sizes[species] ??
-        {'info': 'Size data not available for this species'};
+        const {'info': 'Size data not available for this species'};
   }
 
   static List<String> _getJudgingTips(String species) {
-    final Map<String, List<String>> tips = {
+    const Map<String, List<String>> tips = {
       'Striped Bass': [
         'Measure from tip of nose to end of tail (total length)',
         'Check for distinctive dark horizontal stripes',
@@ -391,11 +389,11 @@ class ScoringService {
       ],
     };
     return tips[species] ??
-        ['Standard measuring and verification procedures apply'];
+        const ['Standard measuring and verification procedures apply'];
   }
 
   static String _getHabitaInfo(String species) {
-    final habitatMap = {
+    const habitatMap = {
       'Striped Bass':
           'Anadromous, found in surf, bays, and rivers. Migrates seasonally.',
       'Red Drum':
@@ -415,7 +413,7 @@ class ScoringService {
   }
 
   static List<String> _getIdentificationTips(String species) {
-    final Map<String, List<String>> identification = {
+    const Map<String, List<String>> identification = {
       'Striped Bass': [
         '7-8 distinct dark horizontal stripes',
         'Silvery body with greenish back',
@@ -442,170 +440,7 @@ class ScoringService {
       ],
     };
     return identification[species] ??
-        ['Consult field guide for identification'];
-  }
-
-  /// Tournament-specific scoring methods
-  static int calculateTournamentRank(List<Fish> catches) {
-    if (catches.isEmpty) return 0;
-
-    final totalPoints = catches
-        .where((fish) => fish.verified)
-        .fold(0, (sum, fish) => sum + fish.points);
-
-    return totalPoints;
-  }
-
-  /// Calculate team's best fish for each species
-  static Map<String, Fish> getBestFishBySpecies(List<Fish> teamCatches) {
-    Map<String, Fish> bestFish = {};
-
-    for (final fish in teamCatches.where((f) => f.verified)) {
-      if (!bestFish.containsKey(fish.species) ||
-          fish.points > bestFish[fish.species]!.points) {
-        bestFish[fish.species] = fish;
-      }
-    }
-
-    return bestFish;
-  }
-
-  /// Advanced scoring analytics
-  static Map<String, dynamic> getTeamScoringAnalytics(List<Fish> teamCatches) {
-    final verifiedCatches = teamCatches.where((f) => f.verified).toList();
-
-    if (verifiedCatches.isEmpty) {
-      return {
-        'totalPoints': 0,
-        'averagePoints': 0.0,
-        'bestFish': null,
-        'speciesCount': 0,
-        'catchRate': 0.0,
-      };
-    }
-
-    final totalPoints =
-        verifiedCatches.fold(0, (sum, fish) => sum + fish.points);
-    final averagePoints = totalPoints / verifiedCatches.length;
-    final bestFish =
-        verifiedCatches.reduce((a, b) => a.points > b.points ? a : b);
-    final speciesCount = verifiedCatches.map((f) => f.species).toSet().length;
-    final catchRate = teamCatches.isNotEmpty
-        ? (verifiedCatches.length / teamCatches.length) * 100
-        : 0.0;
-
-    return {
-      'totalPoints': totalPoints,
-      'averagePoints': averagePoints.round(),
-      'bestFish': bestFish,
-      'speciesCount': speciesCount,
-      'catchRate': catchRate.round(),
-      'pointsBreakdown': _getPointsBreakdownBySpecies(verifiedCatches),
-    };
-  }
-
-  static Map<String, int> _getPointsBreakdownBySpecies(List<Fish> catches) {
-    Map<String, int> breakdown = {};
-
-    for (final fish in catches) {
-      breakdown[fish.species] = (breakdown[fish.species] ?? 0) + fish.points;
-    }
-
-    return breakdown;
-  }
-
-  /// Fraud detection and validation
-  static List<String> detectAnomalies(Fish fish, List<Fish> recentCatches) {
-    List<String> warnings = [];
-
-    // Check for duplicate entries
-    final similarCatches = recentCatches
-        .where((other) =>
-            other.teamId == fish.teamId &&
-            other.species == fish.species &&
-            (other.length - fish.length).abs() < 0.5 &&
-            (other.weight - fish.weight).abs() < 0.1 &&
-            other.caughtTime.difference(fish.caughtTime).inMinutes.abs() < 30)
-        .toList();
-
-    if (similarCatches.isNotEmpty) {
-      warnings.add('Similar fish entry detected - possible duplicate');
-    }
-
-    // Check for unusually high points
-    final avgPoints = recentCatches.isNotEmpty
-        ? recentCatches.fold(0, (sum, f) => sum + f.points) /
-            recentCatches.length
-        : 0;
-
-    if (fish.points > avgPoints * 2.5) {
-      warnings.add('Exceptionally high point value - verify measurements');
-    }
-
-    // Check catch frequency
-    final recentTeamCatches = recentCatches
-        .where((f) => f.teamId == fish.teamId)
-        .where(
-            (f) => fish.caughtTime.difference(f.caughtTime).inHours.abs() < 2)
-        .length;
-
-    if (recentTeamCatches > 5) {
-      warnings.add('High catch frequency detected - verify timing');
-    }
-
-    return warnings;
-  }
-
-  /// Generate scoring summary for display
-  static Map<String, dynamic> generateSummary(List<Fish> allCatches) {
-    final verifiedCatches = allCatches.where((f) => f.verified).toList();
-
-    if (verifiedCatches.isEmpty) {
-      return {
-        'totalFish': 0,
-        'totalPoints': 0,
-        'averagePoints': 0.0,
-        'topSpecies': 'None',
-        'biggestFish': null,
-      };
-    }
-
-    final totalPoints =
-        verifiedCatches.fold(0, (sum, fish) => sum + fish.points);
-    final averagePoints = totalPoints / verifiedCatches.length;
-
-    // Find most valuable species
-    final speciesPoints = <String, int>{};
-    for (final fish in verifiedCatches) {
-      speciesPoints[fish.species] =
-          (speciesPoints[fish.species] ?? 0) + fish.points;
-    }
-
-    final topSpecies = speciesPoints.entries.isEmpty
-        ? 'None'
-        : speciesPoints.entries.reduce((a, b) => a.value > b.value ? a : b).key;
-
-    final biggestFish =
-        verifiedCatches.reduce((a, b) => a.points > b.points ? a : b);
-
-    return {
-      'totalFish': verifiedCatches.length,
-      'totalPoints': totalPoints,
-      'averagePoints': averagePoints.round(),
-      'topSpecies': topSpecies,
-      'biggestFish': biggestFish,
-      'speciesDistribution': _getSpeciesDistribution(verifiedCatches),
-    };
-  }
-
-  static Map<String, int> _getSpeciesDistribution(List<Fish> catches) {
-    Map<String, int> distribution = {};
-
-    for (final fish in catches) {
-      distribution[fish.species] = (distribution[fish.species] ?? 0) + 1;
-    }
-
-    return distribution;
+        const ['Consult field guide for identification'];
   }
 
   /// Performance optimization
@@ -615,17 +450,6 @@ class ScoringService {
 
   static int getCacheSize() {
     return _scoreCache.length;
-  }
-
-  /// Batch scoring for multiple fish
-  static List<int> batchCalculatePoints(List<Map<String, dynamic>> fishData) {
-    return fishData
-        .map((data) => calculatePoints(
-              length: data['length'],
-              weight: data['weight'],
-              species: data['species'],
-            ))
-        .toList();
   }
 
   /// Weight-length relationship validation
@@ -648,60 +472,5 @@ class ScoringService {
 
     return actualRatio >= (expectedRatio - tolerance) &&
         actualRatio <= (expectedRatio + tolerance);
-  }
-
-  /// Tournament leaderboard calculation
-  static List<Map<String, dynamic>> calculateLeaderboard(
-      Map<String, List<Fish>> teamCatches) {
-    final leaderboard = <Map<String, dynamic>>[];
-
-    teamCatches.forEach((teamId, catches) {
-      final analytics = getTeamScoringAnalytics(catches);
-      leaderboard.add({
-        'teamId': teamId,
-        'totalPoints': analytics['totalPoints'],
-        'fishCount': catches.where((f) => f.verified).length,
-        'speciesCount': analytics['speciesCount'],
-        'averagePoints': analytics['averagePoints'],
-        'bestFish': analytics['bestFish'],
-      });
-    });
-
-    // Sort by total points descending
-    leaderboard.sort(
-        (a, b) => (b['totalPoints'] as int).compareTo(a['totalPoints'] as int));
-
-    // Add rankings
-    for (int i = 0; i < leaderboard.length; i++) {
-      leaderboard[i]['rank'] = i + 1;
-    }
-
-    return leaderboard;
-  }
-
-  /// Real-time scoring updates
-  static Map<String, dynamic> getRealtimeUpdate(
-      String teamId, List<Fish> newCatches) {
-    final verifiedCatches = newCatches.where((f) => f.verified).toList();
-
-    if (verifiedCatches.isEmpty) {
-      return {'hasUpdate': false};
-    }
-
-    final newPoints = verifiedCatches.fold(0, (sum, fish) => sum + fish.points);
-    final lastCatch = verifiedCatches.last;
-
-    return {
-      'hasUpdate': true,
-      'teamId': teamId,
-      'newPoints': newPoints,
-      'newFishCount': verifiedCatches.length,
-      'lastCatch': {
-        'species': lastCatch.species,
-        'points': lastCatch.points,
-        'time': lastCatch.caughtTime,
-      },
-      'timestamp': DateTime.now(),
-    };
   }
 }

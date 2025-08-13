@@ -318,11 +318,14 @@ class AuthService {
       }
     }
 
-    final removed = _users.removeWhere((u) => u.id == userId) > 0;
-    if (removed) {
+    final countRemoved = _users.where((u) => u.id == userId).length;
+    _users.removeWhere((u) => u.id == userId);
+
+    if (countRemoved > 0) {
       _notifyListeners();
+      return true;
     }
-    return removed;
+    return false;
   }
 
   static Future<void> updateUserRole(String userId, UserRole newRole) async {
