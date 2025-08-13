@@ -1,74 +1,240 @@
-// Step 1: Update your main_page.dart navigation
+// screens/main_page.dart
+import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+import '../models/user.dart';
+import 'home/home_screen.dart';
+import 'leaderboard/leaderboard_screen.dart';
+import 'profile/profile_screen.dart';
+import 'judge/judge_screen.dart';
+import 'admin/admin_dashboard.dart';
+import 'admin/admin_tournament_screen.dart';
+import 'registration/join_tournament_screen.dart';
 
-// Add to screens/main_page.dart
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
 
-  // Add this method to get navigation items
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _getCurrentScreen(),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: _getNavigationItems(),
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+      ),
+    );
+  }
+
   List<BottomNavigationBarItem> _getNavigationItems() {
     final user = AuthService.currentUser;
-    if (user == null) {
+    
+    // For non-authenticated users or regular users
+    if (user == null || user.role == UserRole.user) {
       return const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Join Tournament'), // NEW
-        BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Leaderboard'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.how_to_reg),
+          label: 'Join Tournament',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
       ];
     }
 
-    switch (user.role) {
-      case UserRole.admin:
-        return const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.event), label: 'Tournaments'),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: 'Leaderboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.gavel), label: 'Judge'),
-          BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'),
-        ];
-      // ... other roles remain the same
+    // For admin users
+    if (user.role == UserRole.admin) {
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.event),
+          label: 'Tournaments',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.gavel),
+          label: 'Judge',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.admin_panel_settings),
+          label: 'Admin',
+        ),
+      ];
     }
+
+    // For team captains
+    if (user.role == UserRole.teamCaptain) {
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.group),
+          label: 'My Team',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ];
+    }
+
+    // For judges
+    if (user.role == UserRole.judge) {
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.gavel),
+          label: 'Judge',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.leaderboard),
+          label: 'Leaderboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ];
+    }
+
+    // Default fallback
+    return const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.leaderboard),
+        label: 'Leaderboard',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: 'Profile',
+      ),
+    ];
   }
 
-  // Update _getCurrentScreen method
   Widget _getCurrentScreen() {
     final user = AuthService.currentUser;
-    
-    if (user == null) {
+
+    // For non-authenticated users or regular users
+    if (user == null || user.role == UserRole.user) {
       switch (_selectedIndex) {
-        case 0: return const HomeScreen();
-        case 1: return const JoinTournamentScreen(); // NEW
-        case 2: return const LeaderboardScreen();
-        case 3: return const ProfileScreen();
-        default: return const HomeScreen();
+        case 0:
+          return const HomeScreen();
+        case 1:
+          return const JoinTournamentScreen();
+        case 2:
+          return const LeaderboardScreen();
+        case 3:
+          return const ProfileScreen();
+        default:
+          return const HomeScreen();
       }
     }
 
-    switch (user.role) {
-      case UserRole.admin:
-        switch (_selectedIndex) {
-          case 0: return const HomeScreen();
-          case 1: return const AdminTournamentScreen(); // NEW - Enhanced version
-          case 2: return const LeaderboardScreen();
-          case 3: return const JudgeScreen();
-          case 4: return const AdminDashboard();
-          default: return const HomeScreen();
-        }
-      // ... handle other roles
+    // For admin users
+    if (user.role == UserRole.admin) {
+      switch (_selectedIndex) {
+        case 0:
+          return const HomeScreen();
+        case 1:
+          return const AdminTournamentScreen();
+        case 2:
+          return const LeaderboardScreen();
+        case 3:
+          return const JudgeScreen();
+        case 4:
+          return const AdminDashboard();
+        default:
+          return const HomeScreen();
+      }
+    }
+
+    // For team captains
+    if (user.role == UserRole.teamCaptain) {
+      switch (_selectedIndex) {
+        case 0:
+          return const HomeScreen();
+        case 1:
+          return const TeamManagementScreen(); // You may need to create this
+        case 2:
+          return const LeaderboardScreen();
+        case 3:
+          return const ProfileScreen();
+        default:
+          return const HomeScreen();
+      }
+    }
+
+    // For judges
+    if (user.role == UserRole.judge) {
+      switch (_selectedIndex) {
+        case 0:
+          return const HomeScreen();
+        case 1:
+          return const JudgeScreen();
+        case 2:
+          return const LeaderboardScreen();
+        case 3:
+          return const ProfileScreen();
+        default:
+          return const HomeScreen();
+      }
+    }
+
+    // Default fallback
+    switch (_selectedIndex) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return const LeaderboardScreen();
+      case 2:
+        return const ProfileScreen();
+      default:
+        return const HomeScreen();
     }
   }
 }
 
-// Step 2: Create the new AdminTournamentScreen that includes registration management
-
-// screens/admin/admin_tournament_screen.dart
-import 'package:flutter/material.dart';
-import '../../models/tournament.dart';
-import '../../services/data_service.dart';
-import '../../services/auth_service.dart';
-import 'tournament_management_screen.dart';
-import 'tournament_registration_screen.dart';
-import 'create_tournament_screen.dart';
-
+// Admin Tournament Screen for managing tournaments and registrations
 class AdminTournamentScreen extends StatefulWidget {
   const AdminTournamentScreen({super.key});
 
@@ -238,7 +404,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
     );
   }
 
-  Widget _buildTournamentCard(Tournament tournament) {
+  Widget _buildTournamentCard(tournament) {
     final registrations = DataService.getIndividualRegistrations(tournament.id);
     final paidCount = registrations.where((r) => r.isPaid).length;
     final pendingCount = registrations.length - paidCount;
@@ -264,7 +430,23 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                     ],
                   ),
                 ),
-                StatusBadge(status: tournament.status, isLive: tournament.status == 'live'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: tournament.status == 'live' 
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    tournament.status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: tournament.status == 'live' ? Colors.green : Colors.orange,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -296,7 +478,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => TournamentManagementScreen(),
+                      builder: (context) => const TournamentManagementScreen(),
                     )),
                     icon: const Icon(Icons.edit, size: 16),
                     label: const Text('Manage'),
@@ -338,7 +520,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
     );
   }
 
-  List<Tournament> _getFilteredTournaments() {
+  List _getFilteredTournaments() {
     final allTournaments = DataService.getAllTournaments();
     if (_selectedFilter == 'all') return allTournaments;
     return DataService.getTournamentsByStatus(_selectedFilter);
@@ -370,7 +552,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
     }
   }
 
-  void _showTournamentSelection(List<Tournament> tournaments) {
+  void _showTournamentSelection(List tournaments) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -393,205 +575,35 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
   }
 }
 
-// Step 3: Update your leaderboard to show both teams and individuals
+// Add necessary imports
+import '../screens/admin/tournament_management_screen.dart';
+import '../screens/admin/create_tournament_screen.dart';
+import '../screens/admin/tournament_registration_screen.dart';
+import '../services/data_service.dart';
 
-// screens/leaderboard/enhanced_leaderboard_screen.dart
-class EnhancedLeaderboardScreen extends StatefulWidget {
-  const EnhancedLeaderboardScreen({super.key});
-
-  @override
-  State<EnhancedLeaderboardScreen> createState() => _EnhancedLeaderboardScreenState();
-}
-
-class _EnhancedLeaderboardScreenState extends State<EnhancedLeaderboardScreen> {
-  bool showSeasonLeaderboard = true;
-  String selectedCategory = 'teams'; // 'teams', 'individuals', 'kids'
+// Placeholder for team management screen
+class TeamManagementScreen extends StatelessWidget {
+  const TeamManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Toggle between Season and Tournament view
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Season'), icon: Icon(Icons.emoji_events)),
-              ButtonSegment(value: false, label: Text('Tournaments'), icon: Icon(Icons.event)),
-            ],
-            selected: {showSeasonLeaderboard},
-            onSelectionChanged: (Set<bool> newSelection) {
-              setState(() => showSeasonLeaderboard = newSelection.first);
-            },
-          ),
-        ),
-
-        if (showSeasonLeaderboard) ...[
-          // Category selection for season view
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Text('Category: '),
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: ['teams', 'individuals', 'kids'].map((category) => 
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(_getCategoryDisplayName(category)),
-                            selected: selectedCategory == category,
-                            onSelected: (selected) {
-                              if (selected) setState(() => selectedCategory = category);
-                            },
-                          ),
-                        )
-                      ).toList(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(child: _buildSeasonLeaderboard()),
-        ] else ...[
-          Expanded(child: _buildTournamentSelector()),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSeasonLeaderboard() {
-    switch (selectedCategory) {
-      case 'teams':
-        return _buildTeamLeaderboard();
-      case 'individuals':
-        return _buildIndividualLeaderboard();
-      case 'kids':
-        return _buildKidsLeaderboard();
-      default:
-        return _buildTeamLeaderboard();
-    }
-  }
-
-  Widget _buildTeamLeaderboard() {
-    final teams = DataService.getSeasonLeaderboard();
-    if (teams.isEmpty) return _buildEmptyState('No teams yet');
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: teams.length,
-      itemBuilder: (context, index) {
-        final team = teams[index];
-        final rank = index + 1;
-        return _buildTeamLeaderboardCard(team, rank);
-      },
-    );
-  }
-
-  Widget _buildIndividualLeaderboard() {
-    // Combine all individual registrations across tournaments
-    final allTournaments = DataService.getAllTournaments();
-    final allIndividuals = <IndividualRegistration>[];
-    
-    for (final tournament in allTournaments) {
-      final individuals = DataService.getIndividualLeaderboard(tournament.id);
-      allIndividuals.addAll(individuals);
-    }
-    
-    // Sort by total points
-    allIndividuals.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-    
-    if (allIndividuals.isEmpty) return _buildEmptyState('No individual participants yet');
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: allIndividuals.length,
-      itemBuilder: (context, index) {
-        final individual = allIndividuals[index];
-        final rank = index + 1;
-        return _buildIndividualLeaderboardCard(individual, rank);
-      },
-    );
-  }
-
-  Widget _buildKidsLeaderboard() {
-    // Similar to individual but filter for kids only
-    final allTournaments = DataService.getAllTournaments();
-    final allKids = <IndividualRegistration>[];
-    
-    for (final tournament in allTournaments) {
-      final kids = DataService.getKidsLeaderboard(tournament.id);
-      allKids.addAll(kids);
-    }
-    
-    allKids.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-    
-    if (allKids.isEmpty) return _buildEmptyState('No kids participants yet');
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: allKids.length,
-      itemBuilder: (context, index) {
-        final kid = allKids[index];
-        final rank = index + 1;
-        return _buildKidLeaderboardCard(kid, rank);
-      },
-    );
-  }
-
-  // Individual leaderboard card widgets...
-  Widget _buildIndividualLeaderboardCard(IndividualRegistration individual, int rank) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: RankBadge(rank: rank),
-        title: Text(individual.displayName),
-        subtitle: Text('${individual.totalPoints} points • ${individual.catches.length} fish'),
-        trailing: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Team'),
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+      ),
+      body: const Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('${individual.totalPoints}', 
-                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const Text('points', style: TextStyle(fontSize: 12)),
+            Icon(Icons.group, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('Team Management'),
+            Text('Feature coming soon!'),
           ],
         ),
       ),
-    );
-  }
-
-  // Add other methods...
-}
-
-// Step 4: Add navigation to your existing screens
-
-// In your existing HomeScreen, add a floating action button for quick tournament join
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // ... existing code ...
-    
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => DataService.refreshData(),
-        child: SingleChildScrollView(
-          // ... existing content ...
-        ),
-      ),
-      floatingActionButton: AuthService.currentUser == null 
-        ? FloatingActionButton.extended(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(
-              builder: (context) => const JoinTournamentScreen(),
-            )),
-            icon: const Icon(Icons.add),
-            label: const Text('Join Tournament'),
-            backgroundColor: Colors.green,
-          )
-        : null,
     );
   }
 }

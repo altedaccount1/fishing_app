@@ -1,14 +1,24 @@
 // screens/admin/tournament_registration_screen.dart
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../models/tournament.dart';
+import '../../models/individual_registration.dart';
+import '../../models/tournament_code.dart';
+import '../../services/data_service.dart';
+import '../../utils/date_formatter.dart';
+
 class TournamentRegistrationScreen extends StatefulWidget {
   final Tournament tournament;
 
   const TournamentRegistrationScreen({super.key, required this.tournament});
 
   @override
-  State<TournamentRegistrationScreen> createState() => _TournamentRegistrationScreenState();
+  State<TournamentRegistrationScreen> createState() =>
+      _TournamentRegistrationScreenState();
 }
 
-class _TournamentRegistrationScreenState extends State<TournamentRegistrationScreen> {
+class _TournamentRegistrationScreenState
+    extends State<TournamentRegistrationScreen> {
   String _selectedFilter = 'all';
   late TournamentCode _tournamentCode;
 
@@ -27,7 +37,8 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
 
   @override
   Widget build(BuildContext context) {
-    final registrations = DataService.getIndividualRegistrations(widget.tournament.id);
+    final registrations =
+        DataService.getIndividualRegistrations(widget.tournament.id);
     final filteredRegistrations = _getFilteredRegistrations(registrations);
 
     return Scaffold(
@@ -96,7 +107,8 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
               children: [
                 Icon(Icons.confirmation_number, color: Colors.green.shade600),
                 const SizedBox(width: 8),
-                const Text('Tournament Code: ', style: TextStyle(fontWeight: FontWeight.w500)),
+                const Text('Tournament Code: ',
+                    style: TextStyle(fontWeight: FontWeight.w500)),
                 Text(
                   _tournamentCode.code,
                   style: const TextStyle(
@@ -119,16 +131,20 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
           Row(
             children: [
               Expanded(
-                child: _buildStatCard('Total', totalRegistrations.toString(), Colors.blue),
+                child: _buildStatCard(
+                    'Total', totalRegistrations.toString(), Colors.blue),
               ),
               Expanded(
-                child: _buildStatCard('Paid', paidRegistrations.toString(), Colors.green),
+                child: _buildStatCard(
+                    'Paid', paidRegistrations.toString(), Colors.green),
               ),
               Expanded(
-                child: _buildStatCard('Pending', pendingRegistrations.toString(), Colors.orange),
+                child: _buildStatCard(
+                    'Pending', pendingRegistrations.toString(), Colors.orange),
               ),
               Expanded(
-                child: _buildStatCard('Kids', kidsRegistrations.toString(), Colors.purple),
+                child: _buildStatCard(
+                    'Kids', kidsRegistrations.toString(), Colors.purple),
               ),
             ],
           ),
@@ -225,7 +241,8 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: registration.isPaid ? Colors.green : Colors.orange,
+                  backgroundColor:
+                      registration.isPaid ? Colors.green : Colors.orange,
                   child: Icon(
                     registration.isPaid ? Icons.paid : Icons.pending,
                     color: Colors.white,
@@ -256,9 +273,10 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: registration.isPaid 
+                    color: registration.isPaid
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -300,11 +318,13 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.emoji_events, size: 16, color: Colors.blue.shade600),
+                  Icon(Icons.emoji_events,
+                      size: 16, color: Colors.blue.shade600),
                   const SizedBox(width: 4),
                   Text(
                     '${registration.totalPoints} points (${registration.catches.length} fish)',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -386,7 +406,8 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
     );
   }
 
-  List<IndividualRegistration> _getFilteredRegistrations(List<IndividualRegistration> registrations) {
+  List<IndividualRegistration> _getFilteredRegistrations(
+      List<IndividualRegistration> registrations) {
     switch (_selectedFilter) {
       case 'pending':
         return registrations.where((r) => !r.isPaid).toList();
@@ -415,7 +436,7 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
   }
 
   void _loadTournamentCode() {
-    _tournamentCode = DataService.getTournamentCode(widget.tournament.id) ?? 
+    _tournamentCode = DataService.getTournamentCode(widget.tournament.id) ??
         DataService.generateTournamentCode(widget.tournament.id);
   }
 
@@ -512,7 +533,7 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
       try {
         await DataService.markRegistrationAsPaid(registration.id);
         setState(() {});
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -551,11 +572,17 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
               if (registration.phoneNumber != null)
                 _buildDetailRow('Phone', registration.phoneNumber!),
               if (registration.isChild) ...[
-                _buildDetailRow('Parent/Guardian', registration.parentName ?? 'Not provided'),
-                _buildDetailRow('Parent Phone', registration.parentPhone ?? 'Not provided'),
+                _buildDetailRow('Parent/Guardian',
+                    registration.parentName ?? 'Not provided'),
+                _buildDetailRow(
+                    'Parent Phone', registration.parentPhone ?? 'Not provided'),
               ],
-              _buildDetailRow('Registration Time', DateFormatter.formatFullDateTime(registration.registrationTime)),
-              _buildDetailRow('Payment Status', registration.isPaid ? 'PAID' : 'PENDING'),
+              _buildDetailRow(
+                  'Registration Time',
+                  DateFormatter.formatFullDateTime(
+                      registration.registrationTime)),
+              _buildDetailRow(
+                  'Payment Status', registration.isPaid ? 'PAID' : 'PENDING'),
               _buildDetailRow('Total Points', '${registration.totalPoints}'),
               _buildDetailRow('Fish Caught', '${registration.catches.length}'),
             ],
@@ -677,11 +704,12 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
       try {
         await DataService.removeIndividualRegistration(registration.id);
         setState(() {});
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${registration.displayName} removed from tournament'),
+              content:
+                  Text('${registration.displayName} removed from tournament'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -699,6 +727,3 @@ class _TournamentRegistrationScreenState extends State<TournamentRegistrationScr
     }
   }
 }
-
-// Add missing import
-import 'package:flutter/services.dart';
