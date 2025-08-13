@@ -4,6 +4,7 @@ import '../models/tournament.dart';
 import '../models/team.dart';
 import '../models/fish.dart';
 import '../models/individual_registration.dart';
+import '../models/tournament_code.dart';
 
 class DataService {
   // Storage

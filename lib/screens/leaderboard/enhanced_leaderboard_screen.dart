@@ -64,9 +64,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                       Text(_getCategoryDisplayName(category)),
                                   selected: selectedCategory == category,
                                   onSelected: (selected) {
-                                    if (selected)
+                                    if (selected) {
                                       setState(
                                           () => selectedCategory = category);
+                                    }
                                   },
                                 ),
                               ))
@@ -129,8 +130,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     // Sort by total points
     allIndividuals.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
 
-    if (allIndividuals.isEmpty)
+    if (allIndividuals.isEmpty) {
       return _buildEmptyState('No individual participants yet');
+    }
 
     return RefreshIndicator(
       onRefresh: () => DataService.refreshData(),

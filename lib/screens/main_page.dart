@@ -1,13 +1,16 @@
 // screens/main_page.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 import '../models/user.dart';
 import 'home/home_screen.dart';
 import 'leaderboard/leaderboard_screen.dart';
 import 'profile/profile_screen.dart';
 import 'judge/judge_screen.dart';
 import 'admin/admin_dashboard.dart';
-import 'admin/admin_tournament_screen.dart';
+import 'admin/create_tournament_screen.dart';
+import 'admin/tournament_management_screen.dart';
+import 'admin/tournament_registration_screen.dart';
 import 'registration/join_tournament_screen.dart';
 
 class MainPage extends StatefulWidget {
@@ -41,7 +44,7 @@ class _MainPageState extends State<MainPage> {
 
   List<BottomNavigationBarItem> _getNavigationItems() {
     final user = AuthService.currentUser;
-    
+
     // For non-authenticated users or regular users
     if (user == null || user.role == UserRole.user) {
       return const [
@@ -316,7 +319,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
     );
   }
 
-  Widget _buildQuickActionCard(String title, String subtitle, IconData icon, 
+  Widget _buildQuickActionCard(String title, String subtitle, IconData icon,
       Color color, VoidCallback onTap) {
     return Card(
       child: InkWell(
@@ -347,7 +350,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
 
   Widget _buildFilterBar() {
     final filterOptions = ['all', 'live', 'upcoming', 'completed'];
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -357,16 +360,19 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: filterOptions.map((filter) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(filter.toUpperCase()),
-                    selected: _selectedFilter == filter,
-                    onSelected: (selected) {
-                      if (selected) setState(() => _selectedFilter = filter);
-                    },
-                  ),
-                )).toList(),
+                children: filterOptions
+                    .map((filter) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(filter.toUpperCase()),
+                            selected: _selectedFilter == filter,
+                            onSelected: (selected) {
+                              if (selected)
+                                setState(() => _selectedFilter = filter);
+                            },
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
           ),
@@ -377,7 +383,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
 
   Widget _buildTournamentList() {
     final tournaments = _getFilteredTournaments();
-    
+
     if (tournaments.isEmpty) {
       return Center(
         child: Column(
@@ -424,16 +430,18 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                     children: [
                       Text(
                         tournament.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text('${tournament.location} • ${tournament.hostClub}'),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: tournament.status == 'live' 
+                    color: tournament.status == 'live'
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -443,14 +451,16 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: tournament.status == 'live' ? Colors.green : Colors.orange,
+                      color: tournament.status == 'live'
+                          ? Colors.green
+                          : Colors.orange,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Registration Stats
             Container(
               padding: const EdgeInsets.all(12),
@@ -460,7 +470,8 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
               ),
               child: Row(
                 children: [
-                  _buildStatChip('Teams', '${tournament.teams.length}', Colors.blue),
+                  _buildStatChip(
+                      'Teams', '${tournament.teams.length}', Colors.blue),
                   const SizedBox(width: 8),
                   _buildStatChip('Individuals', '$paidCount', Colors.green),
                   const SizedBox(width: 8),
@@ -469,17 +480,20 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => const TournamentManagementScreen(),
-                    )),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const TournamentManagementScreen(),
+                        )),
                     icon: const Icon(Icons.edit, size: 16),
                     label: const Text('Manage'),
                   ),
@@ -487,13 +501,18 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => TournamentRegistrationScreen(tournament: tournament),
-                    )),
+                    onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TournamentRegistrationScreen(
+                              tournament: tournament),
+                        )),
                     icon: const Icon(Icons.people, size: 16),
                     label: const Text('Registration'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: tournament.status == 'live' ? Colors.green : Colors.blue,
+                      backgroundColor: tournament.status == 'live'
+                          ? Colors.green
+                          : Colors.blue,
                     ),
                   ),
                 ),
@@ -515,7 +534,8 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
       ),
       child: Text(
         '$value $label',
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
+        style:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: color),
       ),
     );
   }
@@ -527,9 +547,11 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
   }
 
   void _navigateToCreateTournament() {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (context) => const CreateTournamentScreen(),
-    )).then((created) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CreateTournamentScreen(),
+        )).then((created) {
       if (created == true) setState(() {});
     });
   }
@@ -544,9 +566,12 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
     }
 
     if (liveTournaments.length == 1) {
-      Navigator.push(context, MaterialPageRoute(
-        builder: (context) => TournamentRegistrationScreen(tournament: liveTournaments.first),
-      ));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                TournamentRegistrationScreen(tournament: liveTournaments.first),
+          ));
     } else {
       _showTournamentSelection(liveTournaments);
     }
@@ -559,27 +584,26 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
         title: const Text('Select Live Tournament'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: tournaments.map((tournament) => ListTile(
-            title: Text(tournament.name),
-            subtitle: Text(tournament.location),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) => TournamentRegistrationScreen(tournament: tournament),
-              ));
-            },
-          )).toList(),
+          children: tournaments
+              .map((tournament) => ListTile(
+                    title: Text(tournament.name),
+                    subtitle: Text(tournament.location),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TournamentRegistrationScreen(
+                                tournament: tournament),
+                          ));
+                    },
+                  ))
+              .toList(),
         ),
       ),
     );
   }
 }
-
-// Add necessary imports
-import '../screens/admin/tournament_management_screen.dart';
-import '../screens/admin/create_tournament_screen.dart';
-import '../screens/admin/tournament_registration_screen.dart';
-import '../services/data_service.dart';
 
 // Placeholder for team management screen
 class TeamManagementScreen extends StatelessWidget {
