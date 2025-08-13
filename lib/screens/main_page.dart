@@ -197,7 +197,7 @@ class _MainPageState extends State<MainPage> {
         case 0:
           return const HomeScreen();
         case 1:
-          return const TeamManagementScreen(); // You may need to create this
+          return const TeamManagementScreen();
         case 2:
           return const LeaderboardScreen();
         case 3:
@@ -605,7 +605,7 @@ class _AdminTournamentScreenState extends State<AdminTournamentScreen> {
   }
 }
 
-// Placeholder for team management screen
+// Team management screen for team captains
 class TeamManagementScreen extends StatelessWidget {
   const TeamManagementScreen({super.key});
 
